@@ -1,0 +1,58 @@
+# --- Claude Code / AI tooling (keep the repo clean) ---
+.claude/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Large model files (FastText cc.en.300.bin is ~7 GB; never commit) ---
+*.bin
+*.pth
+*.pt
+
+# --- Terraform (never commit state, plans, or variable files with secrets) ---
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# --- Credentials / secrets ---
+.env
+.env.*
+*.pem
+*.key
+*-key.json
+credentials*.json
+service-account*.json
+application_default_credentials.json
+
+# --- Benchmark raw output (commit summarized CSVs only) ---
+benchmarks/results/raw/
+
+# --- Node (if ever needed) ---
+node_modules/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

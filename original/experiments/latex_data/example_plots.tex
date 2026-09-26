@@ -1,0 +1,219 @@
+% Example LaTeX code for plotting EdgeSeal-FHE data with pgfplots
+% Requires: \usepackage{pgfplots} \pgfplotsset{compat=1.18}
+
+% ==============================================================================
+% EXAMPLE 1: Encryption Time vs Security Level (Log Scale)
+% ==============================================================================
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+    xlabel={Polynomial Degree},
+    ylabel={Encryption Time (ms, log scale)},
+    legend style={at={(0.5,-0.15)}, anchor=north, legend columns=3},
+    width=0.8\textwidth,
+    height=6cm,
+    grid=major,
+    xtick={4096,8192,16384},
+    xticklabels={4096\\(80-bit),8192\\(128-bit),16384\\(256-bit)}
+]
+% EdgeSeal-FHE
+\addplot[blue,mark=o,thick] table[x=PolyDegree, y=EdgeSeal_ms, col sep=comma] {encryption_time_vs_security.csv};
+% TenSEAL/SEAL Baseline
+\addplot[purple,mark=square,thick,dashed] table[x=PolyDegree, y=TenSEAL_ms, col sep=comma] {encryption_time_vs_security.csv};
+% AES-256 Reference
+\addplot[red,dotted,thick] table[x=PolyDegree, y=AES256_ms, col sep=comma] {encryption_time_vs_security.csv};
+\legend{EdgeSeal-FHE, TenSEAL/SEAL Baseline, AES-256 Reference}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Encryption Time vs Security Level (CKKS Polynomial Degree)}
+\label{fig:encryption-time}
+\end{figure}
+
+% ==============================================================================
+% EXAMPLE 2: Ciphertext Size vs Security (Log Scale)
+% ==============================================================================
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
+\begin{semilogyaxis}[
+    xlabel={Polynomial Degree},
+    ylabel={Ciphertext Size (KB, log scale)},
+    legend pos=north west,
+    width=0.8\textwidth,
+    height=6cm,
+    grid=major,
+    xtick={4096,8192,16384}
+]
+\addplot[blue,mark=o,thick] table[x=PolyDegree, y=EdgeSeal_KB, col sep=comma] {ciphertext_size.csv};
+\addplot[purple,mark=square,thick,dashed] table[x=PolyDegree, y=TenSEAL_KB, col sep=comma] {ciphertext_size.csv};
+\addplot[green,dotted,thick] table[x=PolyDegree, y=IoTBlockchain_KB, col sep=comma] {ciphertext_size.csv};
+\legend{EdgeSeal-FHE, TenSEAL/SEAL Baseline, IoT-Blockchain (5 fields)}
+\end{semilogyaxis}
+\end{tikzpicture}
+\caption{Ciphertext Size Overhead vs CKKS Configuration}
+\label{fig:ciphertext-size}
+\end{figure}
+
+% ==============================================================================
+% EXAMPLE 3: Embedding Quality Preservation (Bar Chart)
+% ==============================================================================
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.3cm,
+    xlabel={Configuration},
+    ylabel={Reconstruction Quality (\%)},
+    symbolic x coords={Poly4096_80bit,Poly8192_128bit,Poly16384_256bit,Average},
+    xtick=data,
+    legend pos=north east,
+    width=0.8\textwidth,
+    height=6cm,
+    ymin=99,
+    ymax=100.25,
+    grid=major,
+    nodes near coords,
+    every node near coord/.append style={font=\tiny}
+]
+\addplot[fill=blue!50] table[x=Configuration, y=Plaintext_Quality, col sep=comma] {embedding_quality_preservation.csv};
+\addplot[fill=purple!50] table[x=Configuration, y=FHE_Quality, col sep=comma] {embedding_quality_preservation.csv};
+\legend{Plaintext, FHE Encrypted}
+\end{axis}
+\end{tikzpicture}
+\caption{Embedding Quality Preservation: Plaintext vs FHE}
+\label{fig:quality-preservation}
+\end{figure}
+
+% ==============================================================================
+% EXAMPLE 4: Encryption Latency by Device (Grouped Bar Chart)
+% ==============================================================================
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.15cm,
+    xlabel={Data Type},
+    ylabel={Encryption Time (ms)},
+    symbolic x coords={Medical_Embedding_300dim,Vital_Signs_3vals,ECG_Waveform_300samples,ECG_Waveform_500samples},
+    xtick=data,
+    xticklabels={Medical\\Embedding,Vital\\Signs,ECG\\300,ECG\\500},
+    legend pos=north west,
+    width=\textwidth,
+    height=6cm,
+    grid=major,
+    enlarge x limits=0.15
+]
+\addplot[fill=red!60] table[x=DataType, y=LowEnd_ms, col sep=comma] {encryption_latency.csv};
+\addplot[fill=orange!60] table[x=DataType, y=MidRange_ms, col sep=comma] {encryption_latency.csv};
+\addplot[fill=green!60] table[x=DataType, y=HighEnd_ms, col sep=comma] {encryption_latency.csv};
+\legend{Low-end Phone, Mid-range Phone, High-end Phone}
+\end{axis}
+\end{tikzpicture}
+\caption{Encryption Latency by Device Tier}
+\label{fig:encryption-latency}
+\end{figure}
+
+% ==============================================================================
+% EXAMPLE 5: Total Time (Encryption + Network)
+% ==============================================================================
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.15cm,
+    xlabel={Data Type},
+    ylabel={Total Time (ms)},
+    symbolic x coords={Medical_Embedding_300dim,Vital_Signs_3vals,ECG_Waveform_300samples,ECG_Waveform_500samples},
+    xtick=data,
+    xticklabels={Medical\\Embedding,Vital\\Signs,ECG\\300,ECG\\500},
+    legend pos=north west,
+    width=\textwidth,
+    height=6cm,
+    grid=major,
+    enlarge x limits=0.15
+]
+% Add real-time threshold line
+\addplot[red,dashed,thick,forget plot] coordinates {(Medical_Embedding_300dim,100) (ECG_Waveform_500samples,100)};
+\node[red] at (axis cs:ECG_Waveform_300samples,105) {Real-time threshold (100ms)};
+
+\addplot[fill=red!60] table[x=DataType, y=LowEnd_ms, col sep=comma] {total_time.csv};
+\addplot[fill=orange!60] table[x=DataType, y=MidRange_ms, col sep=comma] {total_time.csv};
+\addplot[fill=green!60] table[x=DataType, y=HighEnd_ms, col sep=comma] {total_time.csv};
+\legend{Low-end Phone, Mid-range Phone, High-end Phone}
+\end{axis}
+\end{tikzpicture}
+\caption{Total Time: Encryption + WiFi Transmission}
+\label{fig:total-time}
+\end{figure}
+
+% ==============================================================================
+% EXAMPLE 6: Throughput Comparison
+% ==============================================================================
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.15cm,
+    xlabel={Data Type},
+    ylabel={Throughput (samples/sec)},
+    symbolic x coords={Medical_Embedding_300dim,Vital_Signs_3vals,ECG_Waveform_300samples,ECG_Waveform_500samples},
+    xtick=data,
+    xticklabels={Medical\\Embedding,Vital\\Signs,ECG\\300,ECG\\500},
+    legend pos=south east,
+    width=\textwidth,
+    height=6cm,
+    grid=major,
+    enlarge x limits=0.15
+]
+\addplot[fill=red!60] table[x=DataType, y=LowEnd_samples_per_sec, col sep=comma] {throughput.csv};
+\addplot[fill=orange!60] table[x=DataType, y=MidRange_samples_per_sec, col sep=comma] {throughput.csv};
+\addplot[fill=green!60] table[x=DataType, y=HighEnd_samples_per_sec, col sep=comma] {throughput.csv};
+\legend{Low-end Phone, Mid-range Phone, High-end Phone}
+\end{axis}
+\end{tikzpicture}
+\caption{Throughput by Device Tier}
+\label{fig:throughput}
+\end{figure}
+
+% ==============================================================================
+% EXAMPLE 7: CPU Cycles (Battery Proxy)
+% ==============================================================================
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.15cm,
+    xlabel={Data Type},
+    ylabel={CPU Cycles (millions)},
+    symbolic x coords={Medical_Embedding_300dim,Vital_Signs_3vals,ECG_Waveform_300samples,ECG_Waveform_500samples},
+    xtick=data,
+    xticklabels={Medical\\Embedding,Vital\\Signs,ECG\\300,ECG\\500},
+    legend pos=north west,
+    width=\textwidth,
+    height=6cm,
+    grid=major,
+    enlarge x limits=0.15
+]
+\addplot[fill=red!60] table[x=DataType, y=LowEnd_millions, col sep=comma] {cpu_cycles.csv};
+\addplot[fill=orange!60] table[x=DataType, y=MidRange_millions, col sep=comma] {cpu_cycles.csv};
+\addplot[fill=green!60] table[x=DataType, y=HighEnd_millions, col sep=comma] {cpu_cycles.csv};
+\legend{Low-end Phone, Mid-range Phone, High-end Phone}
+\end{axis}
+\end{tikzpicture}
+\caption{CPU Cycles (Battery Usage Proxy)}
+\label{fig:cpu-cycles}
+\end{figure}
+
+% ==============================================================================
+% LaTeX Preamble Requirements
+% ==============================================================================
+% Add to your document preamble:
+% \usepackage{pgfplots}
+% \pgfplotsset{compat=1.18}
+% \usepgfplotslibrary{statistics}

@@ -1,0 +1,5 @@
+DataType,LowEnd_ms,MidRange_ms,HighEnd_ms
+Medical_Embedding_300dim,81.79,78.72,77.09
+Vital_Signs_3vals,80.84,79.70,75.13
+ECG_Waveform_300samples,83.15,78.24,77.70
+ECG_Waveform_500samples,80.66,77.23,78.90

@@ -1,0 +1,4 @@
+PolyDegree,SecurityBits,EdgeSeal_ms,TenSEAL_ms,AES256_ms
+4096,80,1.52,1.44,0.13
+8192,128,3.22,3.59,0.13
+16384,256,9.95,9.56,0.13

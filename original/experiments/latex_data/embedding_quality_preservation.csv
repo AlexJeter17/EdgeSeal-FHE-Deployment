@@ -1,0 +1,5 @@
+Configuration,Plaintext_Quality,FHE_Quality,Quality_Loss
+Poly4096_80bit,100.0,99.96,0.04
+Poly8192_128bit,100.0,99.86,0.14
+Poly16384_256bit,100.0,99.33,0.67
+Average,100.0,99.72,0.28

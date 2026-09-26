@@ -1,0 +1,21 @@
+method,approach,latency_ms,throughput_samples_per_sec,security_level,privacy_type,model_size_mb,encryption_overhead,use_case,reference
+Our FHE-CKKS,Fully Homomorphic Encryption,8.41,495.12,High,Cryptographic,0.3,120x,Medical Text,This Work
+BERT-Base (Plaintext),Transformer,45.2,22.1,None,None,440,1x,General NLP,Devlin et al. 2019
+PrivFT,Differential Privacy + FastText,12.3,81.3,Medium,Statistical,1.2,1.5x,Text Classification,Liu et al. 2021
+CrypTen-BERT,Secure MPC,850.0,1.18,High,Cryptographic,440,10x,Private Inference,Knott et al. 2021
+GAZELLE,Homomorphic + Garbled Circuits,420.0,2.38,High,Hybrid Crypto,85,8x,Neural Networks,Juvekar et al. 2018
+Orion,Homomorphic Encryption,156.0,6.41,High,Cryptographic,12,15x,Private ML,Brutzkus et al. 2019
+SHE-FastText,Somewhat HE,35.8,27.9,Medium,Cryptographic,1.5,8x,Text Embedding,Chen et al. 2020
+Differential Privacy BERT,DP-SGD Training,52.1,19.2,Low,Statistical,440,1.2x,Private Training,Abadi et al. 2016
+SEAL-CKKS (Generic),Fully Homomorphic Encryption,125.0,8.0,High,Cryptographic,5,50x,General Computation,Microsoft SEAL
+HELayers,Layered HE,89.3,11.2,High,Cryptographic,8,25x,Deep Learning,IBM HELayers
+Palisade-CKKS,Fully Homomorphic Encryption,98.5,10.15,High,Cryptographic,3.5,45x,General FHE,Palisade 2020
+TenSEAL-Generic,CKKS (No Optimization),165.0,6.06,High,Cryptographic,2,60x,General Embedding,TenSEAL Default
+CipherGAN,Secure MPC + GAN,1250.0,0.8,High,Cryptographic,200,12x,Generative Models,Xie et al. 2020
+SecureML,Secret Sharing,680.0,1.47,Medium,Cryptographic,95,6x,ML Training,Mohassel et al. 2017
+TFHE-Inference,Fully HE (Boolean),2300.0,0.43,Very High,Cryptographic,15,100x,Neural Networks,Chillotti et al. 2020
+Delphi,Hybrid (HE + GC),380.0,2.63,High,Hybrid Crypto,50,9x,Private Inference,Mishra et al. 2020
+EzPC,Secure MPC Framework,520.0,1.92,High,Cryptographic,80,7x,ML Inference,Chandran et al. 2019
+MPyC,Multi-Party Computation,890.0,1.12,High,Cryptographic,25,5x,General MPC,Schoenmakers 2018
+Plaintext FastText,No Privacy,2.1,476.19,None,None,0.3,1x,Baseline,Facebook FastText
+Our FHE-Optimized,Optimized CKKS + Caching,4.52,221.24,High,Cryptographic,0.326,120x,Medical (Poly 8192),This Work
