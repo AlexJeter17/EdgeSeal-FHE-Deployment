@@ -62,6 +62,22 @@ Run of `edge/build.sh` at commit `e02559b` (branch `edge-build`). Full log on th
 | Governor | `ondemand` (not changed; the build is not a benchmark) |
 | Smoke test | context + Galois keys 647.1 ms; single encryption 17.81 ms (one cold run, not a benchmark); serialized N=8192 ciphertext 330,719 bytes (323.0 KB); MSE 1.596e-18; torch 4 threads OK |
 
+## End-to-end smoke test (2026-11-13)
+
+`edge/src/e2e_smoke.py` at commit `e213f69`, run on the Pi (Ethernet, `ondemand` governor) against image `84469dc`.
+One `requests.Session`; `/health` opened the connection, then two POSTs of the same ciphertext.
+
+| Check | Result |
+|---|---|
+| Serialized ciphertext (N=8192, 300-dim) | 330,954 bytes (323.2 KB) |
+| `/health` | HTTP 200 `{"ok":true}` |
+| POST 1 | HTTP 200, ACK `bytes` 330,954 (match), client RTT 42.9 ms, server handling 2,505 µs, `cold_start` false |
+| POST 2 | HTTP 200, ACK `bytes` 330,954 (match), client RTT 46.5 ms, server handling 391 µs, `cold_start` false |
+| Instance | Same instance for both (`473f2e83…`), already warmed by a desktop test run minutes earlier |
+
+Result: **passed.** The full path (encrypt on the Pi, HTTPS to Cloud Run, server byte count) works. Timings are
+orientation only (two samples, no warm-up, no governor control).
+
 ## Findings
 
 1. **Preinstalled card was 32-bit.** The SD card that came with the kit ran Raspbian 11 Bullseye 32-bit
