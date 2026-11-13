@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EdgeSeal-FHE edge build script for Raspberry Pi 4 (Raspberry Pi OS, 64-bit).
+# EdgeSeal-FHE edge build script for Raspberry Pi 400 (Raspberry Pi OS, 64-bit).
 #
 # Installs system dependencies and builds TenSEAL (with its bundled Microsoft SEAL)
 # from source at a pinned version. The exact OS image is recorded in OS_IMAGE.md.

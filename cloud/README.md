@@ -12,9 +12,38 @@ Built in two stages:
 
 | Path | Purpose | Status |
 |---|---|---|
-| `app/` | FastAPI service | planned |
-| `requirements.txt` | Service deps | planned |
-| `Dockerfile` | Container image for Cloud Run | planned |
+| `app/` | FastAPI service, ingest-only | done |
+| `requirements.txt` | Service deps, every package pinned (including transitive) | done |
+| `Dockerfile` | `python:3.11-slim`, non-root (uid 10001), uvicorn on `$PORT` | done |
+| Homomorphic analytics (TenSEAL) | Second stage of the service | planned |
+
+### Ingest-only API
+
+- `POST /ingest`: body is the raw serialized CKKS ciphertext (`application/octet-stream`). At handler entry the
+  service records `server_recv_ns` (`time.time_ns()`) and starts a `perf_counter_ns` timer. It streams the body,
+  counts the bytes and drops every chunk. Nothing is persisted. Response:
+
+  ```json
+  {"received": true, "request_id": "…", "bytes": 1048576, "server_recv_ns": 1794605597819080100,
+   "server_handling_ns": 1321200, "instance_id": "…", "cold_start": true}
+  ```
+
+  `instance_id` is a random ID generated at process start (one uvicorn worker = one Cloud Run instance).
+  `cold_start` is `true` only for the first request that instance serves.
+- `GET /health`: `{"ok": true}`. Use this one on Cloud Run. `GET /healthz` returns the same locally, but Cloud Run
+  reserves `/healthz` and answers it with a Google 404 before it reaches the container
+  (Finding 8 in [`docs/setup-record.md`](../docs/setup-record.md)).
+- Logging: one JSON line per request on stdout with exactly the ACK fields. The payload is never logged.
+  The uvicorn access log is off.
+
+Run locally:
+
+```sh
+pip install -r requirements.txt
+PORT=8080 uvicorn app.main:app --port 8080 --no-access-log
+```
+
+Deployment (Artifact Registry + Cloud Run) is in [`infra/terraform/README.md`](../infra/terraform/README.md).
 
 Cold-start behavior is measured, not assumed. If it hurts the real-time measurement, try `min-instances=1`
 or fall back to an always-on VM, and record the tradeoff.
