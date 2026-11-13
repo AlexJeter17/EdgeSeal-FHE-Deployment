@@ -46,6 +46,22 @@ don't renumber.
 | 2026-11 | `dbea37ea22936802ac2f618f15fbad7a2c1612c3` | `sha256:26e325f1f8acaa7f7dd04041078fc0e21526720b5d7a053b4e93fecffed74e78` | First deploy (ingest-only) |
 | 2026-11-13 | `84469dca5eff28a11bcb681bfe2dba433c104430` | `sha256:2bf5cf774cda9df22a6f5d48078224fe7f1e6866b519bab58640f512b6c72ca4` | Adds `/health`. Smoke test from the Pi: `/health` HTTP 200 `{"ok":true}`; 1 KiB `/ingest` ACK `bytes: 1024`, server handling 72 µs, new instance with `cold_start: true` (expected for a new revision). |
 
+## Edge build (2026-11-13)
+
+Run of `edge/build.sh` at commit `e02559b` (branch `edge-build`). Full log on the Pi:
+`~/setup-logs/edge-build-20261113-152907.log`, freeze in `~/setup-logs/edge-pip-freeze-20261113-152907.txt`.
+
+| Item | Value |
+|---|---|
+| Method | Prebuilt, hash-pinned aarch64 cp311 wheels into `~/edgeseal-venv`; no compiling (Finding 9) |
+| Build duration | 85 s (venv + download + install) |
+| Installed | tenseal 0.3.18, numpy 1.26.4, torch 2.2.2, requests 2.34.2, certifi 2026.10.23, charset-normalizer 3.5.2, filelock 4.2.10, fsspec 2026.9.0, idna 3.20, Jinja2 3.1.6, MarkupSafe 3.0.4, mpmath 1.3.0, networkx 3.6.1, sympy 1.14.0, typing_extensions 4.16.0, urllib3 2.8.0 (venv base: pip 23.0.1, setuptools 66.1.1) |
+| Disk | 4.5G free before, 3.9G after (about 0.6 GB used) |
+| Memory | Swap unused during build |
+| Thermal / power | 35.5 °C before, 38.4 °C after; `get_throttled` 0x0 before and after |
+| Governor | `ondemand` (not changed; the build is not a benchmark) |
+| Smoke test | context + Galois keys 647.1 ms; single encryption 17.81 ms (one cold run, not a benchmark); serialized N=8192 ciphertext 330,719 bytes (323.0 KB); MSE 1.596e-18; torch 4 threads OK |
+
 ## Findings
 
 1. **Preinstalled card was 32-bit.** The SD card that came with the kit ran Raspbian 11 Bullseye 32-bit
@@ -81,5 +97,9 @@ don't renumber.
    with both 0.3.14 and 0.3.18. First desktop check with 0.3.18: serialized N=8192 ciphertext 331,038 bytes
    (323.3 KB, paper 326.4 KB), MSE 1.7e-18 (paper 1.41e-18).
    torch 2.2.2 and numpy 1.26.4 match the paper's desktop environment (Python 3.10 there, 3.11 on the Pi).
+10. **Serialized ciphertext size is not fixed.** With identical parameters, the N=8192 ciphertext of a 300-dim
+    vector serialized to 331,038 bytes on the desktop and 330,719 bytes on the Pi (TenSEAL 0.3.18). Likely cause:
+    SEAL compresses serialized output, so size varies a little with the random encryption noise. The paper's
+    326.4 KB is one sample. *Consequence:* report ciphertext size as a distribution over trials, not as a constant.
 
 Minor: the first boot happened with Ethernet unplugged; the Pi connected automatically once the cable was plugged in.
