@@ -9,7 +9,7 @@ results were obtained through **simulation**: device speed was a software scalin
 50 Mbps / 20 ms model.
 
 **This project** runs the same pipeline on a real **Raspberry Pi 400** (BCM2711, 4 GB, 1.8 GHz stock, passive heatsink, no fan) talking to a real **Google Cloud Run**
-endpoint over home Wi-Fi. For each metric, it checks whether the measured value lands within **±20%** of the
+endpoint over a wired Ethernet connection on a home network. For each metric, it checks whether the measured value lands within **±20%** of the
 simulated one. A result within ±20% validates the simulation methodology. A larger gap is a reportable finding
 about simulation fidelity.
 
