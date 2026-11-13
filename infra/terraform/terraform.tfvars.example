@@ -1,6 +1,6 @@
 # Copy to terraform.tfvars (git-ignored) and adjust if needed.
 project_id      = "masters-project-csudh-2026"
-billing_account = "01FC84-E1EC35-335246"
+billing_account = "XXXXXX-XXXXXX-XXXXXX" # your billing account ID (Billing > Account management)
 region          = "us-west2"
 
 # Optional overrides (defaults shown):

@@ -44,6 +44,7 @@ don't renumber.
 | Date | Git commit (image tag) | Digest | Notes |
 |---|---|---|---|
 | 2026-11 | `dbea37ea22936802ac2f618f15fbad7a2c1612c3` | `sha256:26e325f1f8acaa7f7dd04041078fc0e21526720b5d7a053b4e93fecffed74e78` | First deploy (ingest-only) |
+| 2026-11-13 | `84469dca5eff28a11bcb681bfe2dba433c104430` | `sha256:2bf5cf774cda9df22a6f5d48078224fe7f1e6866b519bab58640f512b6c72ca4` | Adds `/health`. Smoke test from the Pi: `/health` HTTP 200 `{"ok":true}`; 1 KiB `/ingest` ACK `bytes: 1024`, server handling 72 µs, new instance with `cold_start: true` (expected for a new revision). |
 
 ## Findings
 
@@ -70,5 +71,6 @@ don't renumber.
    *Workaround:* `docker save` to a tarball, then `crane push` (crane v0.22.1 in `~/bin`).
 8. **Cloud Run reserves `/healthz`.** Requests to `/healthz` get a Google 404 from the front end and never
    reach the container. *Workaround:* added a `/health` route (kept `/healthz` for local runs).
+   *Resolved 2026-11-13:* `/health` returns HTTP 200 on Cloud Run (image `84469dc`).
 
 Minor: the first boot happened with Ethernet unplugged; the Pi connected automatically once the cable was plugged in.
