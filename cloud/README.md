@@ -30,7 +30,9 @@ Built in two stages:
 
   `instance_id` is a random ID generated at process start (one uvicorn worker = one Cloud Run instance).
   `cold_start` is `true` only for the first request that instance serves.
-- `GET /healthz`: `{"ok": true}`.
+- `GET /health`: `{"ok": true}`. Use this one on Cloud Run. `GET /healthz` returns the same locally, but Cloud Run
+  reserves `/healthz` and answers it with a Google 404 before it reaches the container
+  (Finding 8 in [`docs/setup-record.md`](../docs/setup-record.md)).
 - Logging: one JSON line per request on stdout with exactly the ACK fields. The payload is never logged.
   The uvicorn access log is off.
 

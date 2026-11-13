@@ -21,7 +21,7 @@ edge/         Raspberry Pi pipeline: pinned OS image, build script, synthetic da
 cloud/        FastAPI receiving service (ingest-only first, then homomorphic analytics)
 infra/        Terraform for GCP (billing budget first, then Cloud Run)
 benchmarks/   Measurement harness, reference values from the paper, simulated-vs-measured comparison
-docs/         The published paper
+docs/         The published paper, and the deployment setup record + findings
 ```
 
 ## Status
@@ -31,8 +31,8 @@ docs/         The published paper
 | Original code imported, paper numbers traced to their source | ✅ |
 | Cloud account + billing budget | ✅ |
 | Edge pipeline (desktop first, then Pi) | ⏳ |
-| Cloud ingest service + Terraform | 🔧 written, not yet deployed |
-| Raspberry Pi 400 setup | ⏳ waiting on hardware |
+| Cloud ingest service + Terraform | ✅ deployed (Cloud Run, us-west2) |
+| Raspberry Pi 400 setup | ✅ ([setup record](docs/setup-record.md)) |
 | Pilot → full benchmark → comparison | ⏳ |
 
 ## Data policy

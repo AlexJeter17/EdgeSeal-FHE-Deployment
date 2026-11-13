@@ -71,14 +71,20 @@ Expected plan: 3 × `google_project_service` (artifactregistry, iam, run), 1 × 
 The image is tagged with the full commit SHA. The repository uses immutable tags, so a SHA tag can't be
 overwritten. Build from a clean `cloud/` so the tag really describes the code.
 
+`docker push` from Cloud Shell fails with "connection refused" (Finding 7 in
+[`docs/setup-record.md`](../../docs/setup-record.md)), so the image is saved to a tarball and pushed with
+`crane` (v0.22.1, in `~/bin`). Use one Cloud Shell window for everything below so `TAG` carries over.
+
 ```sh
 cd ~/EdgeSeal-FHE-Deployment
 git status --porcelain -- cloud     # must print nothing
 TAG="$(git rev-parse HEAD)"
 IMAGE="us-west2-docker.pkg.dev/masters-project-csudh-2026/edgeseal/edgeseal-ingest:${TAG}"
-gcloud auth configure-docker us-west2-docker.pkg.dev --quiet
+gcloud auth configure-docker us-west2-docker.pkg.dev --quiet   # crane reads the same credential helper
 docker build --platform linux/amd64 -t "${IMAGE}" cloud
-docker push "${IMAGE}"
+docker save "${IMAGE}" -o /tmp/edgeseal-ingest.tar
+crane push /tmp/edgeseal-ingest.tar "${IMAGE}"
+crane digest "${IMAGE}"             # record in docs/setup-record.md
 echo "${TAG}"
 ```
 
@@ -103,11 +109,24 @@ Smoke test:
 
 ```sh
 URL="$(terraform output -raw service_url)"
-curl -s "${URL}/healthz"; echo
+curl -s "${URL}/health"; echo      # not /healthz: Cloud Run reserves it (Finding 8)
 head -c 100000 /dev/urandom | curl -s -H 'Content-Type: application/octet-stream' --data-binary @- "${URL}/ingest"; echo
 ```
 
-To deploy a new image later: build and push with the new SHA, update `image_tag` in `terraform.tfvars`, plan, apply.
+### Redeploy a new image
+
+Build and push as above, then **replace** the `image_tag` line (never append a second one):
+
+```sh
+cd ~/EdgeSeal-FHE-Deployment/infra/terraform
+sed -i "s/^image_tag = .*/image_tag = \"${TAG}\"/" terraform.tfvars
+grep '^image_tag' terraform.tfvars          # exactly one line, with the new SHA
+terraform plan -out=redeploy.tfplan
+terraform show -no-color redeploy.tfplan | grep -E "^  # |Plan:"
+```
+
+Expected: `Plan: 0 to add, 1 to change, 0 to destroy` (in-place update of `google_cloud_run_v2_service.ingest[0]`).
+Apply only after the plan is reviewed: `terraform apply redeploy.tfplan`.
 
 ## Files
 

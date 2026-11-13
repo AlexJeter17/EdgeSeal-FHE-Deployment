@@ -1,0 +1,74 @@
+# Setup record
+
+What was actually deployed, and every problem hit along the way. Deployment friction is a thesis finding,
+so each one records what happened, the evidence, and the workaround. Append new findings at the end;
+don't renumber.
+
+## Edge device (Raspberry Pi 400)
+
+| Item | Value |
+|---|---|
+| Board | Raspberry Pi 400 Rev 1.0 (BCM2711, 4 GB, 1.8 GHz stock). Not a Pi 4. |
+| OS image | Raspberry Pi OS (Legacy, 64-bit), Debian 12 Bookworm, release 2026-10-06. Pinned in [`edge/OS_IMAGE.md`](../edge/OS_IMAGE.md). |
+| Kernel | `6.12.115+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.12.115-1+rpt1 (2026-11-03) aarch64` |
+| Userland | 64-bit (`getconf LONG_BIT` = 64, `dpkg --print-architecture` = arm64) |
+| Firmware / bootloader | Firmware Sep 14 2026 (a869839...). EEPROM 2026-09-23, up to date. |
+| Python | 3.11.2 (system). pip blocks system-wide installs (PEP 668), so everything goes in a venv. |
+| Toolchain | gcc 12.2.0, cmake 3.25.1, git 2.39.5, build-essential 12.9, libopenblas-dev 0.3.21, python3-dev / python3-venv 3.11.2 |
+| RAM / swap | 3.7 GiB usable. Swap 4.0 GiB via dphys-swapfile (`/var/swap`, `CONF_SWAPSIZE=4096`, `CONF_MAXSWAP=4096`). |
+| Disk | 16 GB microSD: 15G root, 8.9G used, about 4.5G free at setup. |
+| Boot target | Console (`multi-user.target`). Desktop off for benchmark runs. |
+| CPU governor | Default `ondemand` (600 to 1800 MHz). Set to `performance` per benchmark run, logged, restored after. Not persistent. |
+| Thermal | Passive heatsink, no fan. Idle 32.6 °C five minutes after boot, `get_throttled` = `0x0`. Ambient about 69 °F (estimated). |
+| Power | PSU that came with the Pi 400 kit (presumed official; label not checked). |
+| Clock | chrony 4.3 (systemd-timesyncd removed), Debian NTP pool, stratum 3, RMS offset about 0.2 ms after settling. No RTC. |
+| Network | Ethernet only (`eth0`), 192.168.50.65 reserved on the router. No Wi-Fi profile configured. |
+| Access | `ssh -4 <user>@192.168.50.65` (ed25519 key with passphrase). `-4` is required on Windows, see Finding 4. |
+| Setup logs | `~/setup-logs/` on the Pi (apt logs, original dphys-swapfile config, final-state snapshot) |
+
+## Cloud (Google Cloud)
+
+| Item | Value |
+|---|---|
+| Project | `masters-project-csudh-2026` (number 51281970519) |
+| Billing | Free trial ($300 credit), ends 2026-12-31. Not upgraded; testing finishes before then. |
+| Budget | $15/month, project-scoped, `EXCLUDE_ALL_CREDITS`, alerts at 50/90/100% |
+| Kill switch | None. A free-trial account cannot be charged; see [`infra/terraform/README.md`](../infra/terraform/README.md). |
+| Terraform | 1.17.2 (checksum-verified, in `~/bin` in Cloud Shell), google provider 8.11.0. State lives only in Cloud Shell. |
+| Artifact Registry | `us-west2-docker.pkg.dev/masters-project-csudh-2026/edgeseal` (immutable tags) |
+| Base image | `python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535` |
+| Cloud Run | `edgeseal-ingest`, us-west2, 1 vCPU / 512Mi, min 0 / max 2 instances, `cpu_idle = true`, `startup_cpu_boost = false`, public, runtime service account with no roles |
+
+### Image deployments
+
+| Date | Git commit (image tag) | Digest | Notes |
+|---|---|---|---|
+| 2026-11 | `dbea37ea22936802ac2f618f15fbad7a2c1612c3` | `sha256:26e325f1f8acaa7f7dd04041078fc0e21526720b5d7a053b4e93fecffed74e78` | First deploy (ingest-only) |
+
+## Findings
+
+1. **Preinstalled card was 32-bit.** The SD card that came with the kit ran Raspbian 11 Bullseye 32-bit
+   (armhf, 2023-02-21, pi-gen f2d385517c96..., stage5) on a 64-bit kernel. `uname -m` reported `aarch64`.
+   Only `getconf LONG_BIT` and `dpkg --print-architecture` showed the 32-bit userland.
+   *Workaround:* reflashed with the pinned 64-bit image.
+2. **Imager disables OS customisation for custom images.** Raspberry Pi Imager 2.0.12 turns off OS
+   customisation (user, SSH) when a custom image file is selected. The independently downloaded and hashed
+   file was therefore not used. The same release was flashed from Imager's built-in "Legacy, 64-bit" entry.
+   Imager's own downloaded copy was not hashed; release identity was confirmed from `/etc/rpi-issue`.
+3. **Imager Wi-Fi form blocked SSH settings.** In Imager 2.0.12, leaving Wi-Fi blank under "Secure network"
+   blocked the SSH options. Choosing "Open network" with an empty SSID cleared it. No Wi-Fi profile was
+   created (verified on the Pi).
+4. **mDNS resolves to IPv6 link-local on Windows.** `edgeseal-pi.local` resolves to an IPv6 link-local
+   address on Windows. *Workaround:* `ssh -4` to the reserved IPv4 address.
+5. **Internet NTP accuracy.** chrony showed about 1 ms RMS offset right after install and about 0.2 ms after
+   settling, with a multi-ms error bound. *Mitigation:* log `chronyc tracking` with every benchmark run.
+6. **Cloud Shell no longer ships Terraform.** *Workaround:* installed a pinned, checksum-verified Terraform
+   1.17.2 into `~/bin`.
+7. **`docker push` to Artifact Registry failed from Cloud Shell.** Two attempts failed with TCP connection
+   refused, against different Google IPs. `curl` from the same shell to the same IP worked (HTTP 401, as
+   expected without auth). The Docker 29.9.3 daemon's network path is suspected.
+   *Workaround:* `docker save` to a tarball, then `crane push` (crane v0.22.1 in `~/bin`).
+8. **Cloud Run reserves `/healthz`.** Requests to `/healthz` get a Google 404 from the front end and never
+   reach the container. *Workaround:* added a `/health` route (kept `/healthz` for local runs).
+
+Minor: the first boot happened with Ethernet unplugged; the Pi connected automatically once the cable was plugged in.

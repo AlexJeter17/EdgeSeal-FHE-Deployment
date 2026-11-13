@@ -54,6 +54,10 @@ async def ingest(request: Request) -> JSONResponse:
     return JSONResponse(record)
 
 
+# /health is the probe to use on Cloud Run: the Google front end reserves /healthz and
+# answers it with its own 404 before the request reaches the container. /healthz is kept
+# for local runs.
+@app.get("/health")
 @app.get("/healthz")
-async def healthz() -> dict:
+async def health() -> dict:
     return {"ok": True}
