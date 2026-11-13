@@ -72,5 +72,14 @@ don't renumber.
 8. **Cloud Run reserves `/healthz`.** Requests to `/healthz` get a Google 404 from the front end and never
    reach the container. *Workaround:* added a `/health` route (kept `/healthz` for local runs).
    *Resolved 2026-11-13:* `/health` returns HTTP 200 on Cloud Run (image `84469dc`).
+9. **TenSEAL 0.3.14 (the paper's version) cannot be installed on the Pi as published.** PyPI has 0.3.14 wheels
+   only for CPython 3.7 to 3.10 on x86_64/macOS/Windows, and no source distribution. Bookworm ships Python 3.11
+   on aarch64. Building v0.3.14 from git would use its pinned pybind11 2.6.2, which predates Python 3.11 support,
+   so it would likely need patching.
+   *Decision (2026-11-13):* use the prebuilt TenSEAL 0.3.18 aarch64 cp311 wheel (bundles SEAL 4.3.3 instead of
+   4.1.1). To separate the version effect from the hardware effect, the desktop encryption benchmark is re-run
+   with both 0.3.14 and 0.3.18. First desktop check with 0.3.18: serialized N=8192 ciphertext 331,038 bytes
+   (323.3 KB, paper 326.4 KB), MSE 1.7e-18 (paper 1.41e-18).
+   torch 2.2.2 and numpy 1.26.4 match the paper's desktop environment (Python 3.10 there, 3.11 on the Pi).
 
 Minor: the first boot happened with Ethernet unplugged; the Pi connected automatically once the cable was plugged in.

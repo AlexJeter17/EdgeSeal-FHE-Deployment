@@ -1,0 +1,42 @@
+# Edge (Raspberry Pi 400) Python deps: Python 3.11, linux aarch64 ONLY.
+# Every package pinned with its wheel hash; install with --require-hashes --only-binary=:all:.
+# Resolved 2026-11-13 with pip download for cp311 / manylinux aarch64. Unpacked size ~444 MB (torch 342 MB).
+#
+# Deviation from the paper (Finding 9): tenseal 0.3.18 (SEAL 4.3.3) instead of 0.3.14 (SEAL 4.1.1),
+# because 0.3.14 has no cp311 or aarch64 wheels. torch/numpy match the paper's desktop env (2.2.2 / 1.26.4).
+
+# Direct:
+numpy==1.26.4 \
+    --hash=sha256:7ab55401287bfec946ced39700c053796e7cc0e3acbef09993a9ad2adba6ca6e
+requests==2.34.2 \
+    --hash=sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0
+tenseal==0.3.18 \
+    --hash=sha256:26d70de0087d51a15278f95be65a2b9a6fdcc63263020bd40f0a6107d61ffb87
+torch==2.2.2 \
+    --hash=sha256:32827fa1fbe5da8851686256b4cd94cc7b11be962862c2293811c94eea9457bf
+
+# Transitive:
+certifi==2026.10.23 \
+    --hash=sha256:e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1
+charset-normalizer==3.5.2 \
+    --hash=sha256:d760fe2a4d7c3b226cb9026d6a842868d52a7901bd98420e1baf14e80da85cf5
+filelock==4.2.10 \
+    --hash=sha256:9479aaeb4db20b5a53e3da28493edd24720b66b8a0b84030aa56ccdf243d6857
+fsspec==2026.9.0 \
+    --hash=sha256:8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f
+idna==3.20 \
+    --hash=sha256:ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c
+jinja2==3.1.6 \
+    --hash=sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67
+markupsafe==3.0.4 \
+    --hash=sha256:849dd2bb0e5e4ab2b71c7191726a4a8d5aa8a610daa584728cbee0b710ddc4ef
+mpmath==1.3.0 \
+    --hash=sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c
+networkx==3.6.1 \
+    --hash=sha256:d47fbf302e7d9cbbb9e2555a0d267983d2aa476bac30e90dfbe5669bd57f3762
+sympy==1.14.0 \
+    --hash=sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5
+typing-extensions==4.16.0 \
+    --hash=sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8
+urllib3==2.8.0 \
+    --hash=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3

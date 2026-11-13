@@ -4,9 +4,9 @@ Code that runs on the Raspberry Pi 400 (the real counterpart to the paper's simu
 
 | Path | Purpose | Status |
 |---|---|---|
-| `build.sh` | Version-pinned, logged build of TenSEAL/SEAL from source | skeleton |
+| `build.sh` | Platform/disk checks, venv, hash-pinned wheel install (no compiling), CKKS smoke test, logs to `~/setup-logs/` | written, not yet run on the Pi |
 | `OS_IMAGE.md` | Exact pinned Raspberry Pi OS image | ✅ pinned |
-| `requirements.txt` | Python deps for the edge pipeline (lean: no torch/fasttext) | planned |
+| `requirements.txt` | Hash-pinned aarch64 / Python 3.11 wheels: tenseal 0.3.18, numpy 1.26.4, torch 2.2.2, requests (no fasttext) | done |
 | `data/` | Synthetic embedding generator: 300-dim, L2-normalized, as in `original/experiments/edge_device_simulation.py` | planned |
 | `src/` | CKKS encryption + send pipeline, ported from `original/` | planned |
 
