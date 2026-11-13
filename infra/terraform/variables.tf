@@ -40,3 +40,37 @@ variable "budget_credit_types_treatment" {
     error_message = "Must be INCLUDE_ALL_CREDITS or EXCLUDE_ALL_CREDITS."
   }
 }
+
+# --- Stage 2 ---
+
+variable "artifact_registry_repository_id" {
+  description = "Artifact Registry Docker repository ID."
+  type        = string
+  default     = "edgeseal"
+}
+
+variable "image_name" {
+  description = "Image name inside the Artifact Registry repository."
+  type        = string
+  default     = "edgeseal-ingest"
+}
+
+variable "service_name" {
+  description = "Cloud Run service name."
+  type        = string
+  default     = "edgeseal-ingest"
+}
+
+variable "image_tag" {
+  description = <<-EOT
+    Git commit SHA the image was tagged with. Leave null for step 2a (registry only).
+    Set it for step 2b to create the Cloud Run service. Never "latest".
+  EOT
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.image_tag == null || can(regex("^[0-9a-f]{40}$", var.image_tag))
+    error_message = "image_tag must be a full 40-character lowercase git commit SHA (never \"latest\")."
+  }
+}

@@ -8,7 +8,7 @@ physiological IoT data never exists in plaintext beyond the wearable-to-edge bou
 results were obtained through **simulation**: device speed was a software scaling factor, and the network was a fixed
 50 Mbps / 20 ms model.
 
-**This project** runs the same pipeline on a real **Raspberry Pi 4** talking to a real **Google Cloud Run**
+**This project** runs the same pipeline on a real **Raspberry Pi 400** (BCM2711, 4 GB, 1.8 GHz stock, passive heatsink, no fan) talking to a real **Google Cloud Run**
 endpoint over home Wi-Fi. For each metric, it checks whether the measured value lands within **±20%** of the
 simulated one. A result within ±20% validates the simulation methodology. A larger gap is a reportable finding
 about simulation fidelity.
@@ -29,10 +29,10 @@ docs/         The published paper
 | Component | Status |
 |---|---|
 | Original code imported, paper numbers traced to their source | ✅ |
-| Cloud account + billing budget | ⏳ |
+| Cloud account + billing budget | ✅ |
 | Edge pipeline (desktop first, then Pi) | ⏳ |
-| Cloud ingest service + Terraform | ⏳ |
-| Raspberry Pi 4 setup | ⏳ waiting on hardware |
+| Cloud ingest service + Terraform | 🔧 written, not yet deployed |
+| Raspberry Pi 400 setup | ⏳ waiting on hardware |
 | Pilot → full benchmark → comparison | ⏳ |
 
 ## Data policy
