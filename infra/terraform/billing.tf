@@ -6,7 +6,7 @@
 # account's Billing Account Administrators and Billing Account Users, by email.
 resource "google_billing_budget" "project" {
   billing_account = var.billing_account
-  display_name    = "${var.project_id} monthly budget ($${var.budget_amount_usd})"
+  display_name    = "${var.project_id} monthly budget (${var.budget_amount_usd} USD)"
 
   budget_filter {
     projects               = ["projects/${data.google_project.this.number}"]
