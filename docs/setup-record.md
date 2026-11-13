@@ -46,6 +46,38 @@ don't renumber.
 | 2026-11 | `dbea37ea22936802ac2f618f15fbad7a2c1612c3` | `sha256:26e325f1f8acaa7f7dd04041078fc0e21526720b5d7a053b4e93fecffed74e78` | First deploy (ingest-only) |
 | 2026-11-13 | `84469dca5eff28a11bcb681bfe2dba433c104430` | `sha256:2bf5cf774cda9df22a6f5d48078224fe7f1e6866b519bab58640f512b6c72ca4` | Adds `/health`. Smoke test from the Pi: `/health` HTTP 200 `{"ok":true}`; 1 KiB `/ingest` ACK `bytes: 1024`, server handling 72 µs, new instance with `cold_start: true` (expected for a new revision). |
 
+## Edge build (2026-11-13)
+
+Run of `edge/build.sh` at commit `e02559b` (branch `edge-build`). Full log on the Pi:
+`~/setup-logs/edge-build-20261113-152907.log`, freeze in `~/setup-logs/edge-pip-freeze-20261113-152907.txt`.
+
+| Item | Value |
+|---|---|
+| Method | Prebuilt, hash-pinned aarch64 cp311 wheels into `~/edgeseal-venv`; no compiling (Finding 9) |
+| Build duration | 85 s (venv + download + install) |
+| Installed | tenseal 0.3.18, numpy 1.26.4, torch 2.2.2, requests 2.34.2, certifi 2026.10.23, charset-normalizer 3.5.2, filelock 4.2.10, fsspec 2026.9.0, idna 3.20, Jinja2 3.1.6, MarkupSafe 3.0.4, mpmath 1.3.0, networkx 3.6.1, sympy 1.14.0, typing_extensions 4.16.0, urllib3 2.8.0 (venv base: pip 23.0.1, setuptools 66.1.1) |
+| Disk | 4.5G free before, 3.9G after (about 0.6 GB used) |
+| Memory | Swap unused during build |
+| Thermal / power | 35.5 °C before, 38.4 °C after; `get_throttled` 0x0 before and after |
+| Governor | `ondemand` (not changed; the build is not a benchmark) |
+| Smoke test | context + Galois keys 647.1 ms; single encryption 17.81 ms (one cold run, not a benchmark); serialized N=8192 ciphertext 330,719 bytes (323.0 KB); MSE 1.596e-18; torch 4 threads OK |
+
+## End-to-end smoke test (2026-11-13)
+
+`edge/src/e2e_smoke.py` at commit `e213f69`, run on the Pi (Ethernet, `ondemand` governor) against image `84469dc`.
+One `requests.Session`; `/health` opened the connection, then two POSTs of the same ciphertext.
+
+| Check | Result |
+|---|---|
+| Serialized ciphertext (N=8192, 300-dim) | 330,954 bytes (323.2 KB) |
+| `/health` | HTTP 200 `{"ok":true}` |
+| POST 1 | HTTP 200, ACK `bytes` 330,954 (match), client RTT 42.9 ms, server handling 2,505 µs, `cold_start` false |
+| POST 2 | HTTP 200, ACK `bytes` 330,954 (match), client RTT 46.5 ms, server handling 391 µs, `cold_start` false |
+| Instance | Same instance for both (`473f2e83…`), already warmed by a desktop test run minutes earlier |
+
+Result: **passed.** The full path (encrypt on the Pi, HTTPS to Cloud Run, server byte count) works. Timings are
+orientation only (two samples, no warm-up, no governor control).
+
 ## Findings
 
 1. **Preinstalled card was 32-bit.** The SD card that came with the kit ran Raspbian 11 Bullseye 32-bit
@@ -72,5 +104,18 @@ don't renumber.
 8. **Cloud Run reserves `/healthz`.** Requests to `/healthz` get a Google 404 from the front end and never
    reach the container. *Workaround:* added a `/health` route (kept `/healthz` for local runs).
    *Resolved 2026-11-13:* `/health` returns HTTP 200 on Cloud Run (image `84469dc`).
+9. **TenSEAL 0.3.14 (the paper's version) cannot be installed on the Pi as published.** PyPI has 0.3.14 wheels
+   only for CPython 3.7 to 3.10 on x86_64/macOS/Windows, and no source distribution. Bookworm ships Python 3.11
+   on aarch64. Building v0.3.14 from git would use its pinned pybind11 2.6.2, which predates Python 3.11 support,
+   so it would likely need patching.
+   *Decision (2026-11-13):* use the prebuilt TenSEAL 0.3.18 aarch64 cp311 wheel (bundles SEAL 4.3.3 instead of
+   4.1.1). To separate the version effect from the hardware effect, the desktop encryption benchmark is re-run
+   with both 0.3.14 and 0.3.18. First desktop check with 0.3.18: serialized N=8192 ciphertext 331,038 bytes
+   (323.3 KB, paper 326.4 KB), MSE 1.7e-18 (paper 1.41e-18).
+   torch 2.2.2 and numpy 1.26.4 match the paper's desktop environment (Python 3.10 there, 3.11 on the Pi).
+10. **Serialized ciphertext size is not fixed.** With identical parameters, the N=8192 ciphertext of a 300-dim
+    vector serialized to 331,038 bytes on the desktop and 330,719 bytes on the Pi (TenSEAL 0.3.18). Likely cause:
+    SEAL compresses serialized output, so size varies a little with the random encryption noise. The paper's
+    326.4 KB is one sample. *Consequence:* report ciphertext size as a distribution over trials, not as a constant.
 
 Minor: the first boot happened with Ethernet unplugged; the Pi connected automatically once the cable was plugged in.
